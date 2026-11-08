@@ -24,6 +24,8 @@ else
 	fi
 	# else default to running clamav's servers
 
+	sed -i 's/^User clamav$/#User clamav/' /etc/clamav/clamd.conf
+
 	# Ensure we have some virus data, otherwise clamd refuses to start
 	if [ ! -f "/var/lib/clamav/main.cvd" ]; then
 		echo "Updating initial database"
