@@ -24,14 +24,14 @@ run_case() {
             CLAMAV_NO_CLAMD=true CLAMAV_NO_FRESHCLAMD=true CLAMAV_NO_MILTERD=true \
             HOME="$work/home" TMPDIR="$work/tmp" sh "$entrypoint" sh -c "\
                 test \"\$(awk '! /^[[:space:]]*#/ && \$1 == \"LocalSocket\" { count++; socket = \$2 } END { print count, socket }' '$runtime/clamd.conf')\" = '1 $expected_socket' && \
-                test \"\$(awk '! /^[[:space:]]*#/ && \$1 == \"ClamdSocket\" { print \$2 }' '$runtime/clamav-milter.conf')\" = '$expected_socket' && \
+                test \"\$(awk '! /^[[:space:]]*#/ && \$1 == \"ClamdSocket\" { print \$2 }' '$runtime/clamav-milter.conf')\" = 'unix:$expected_socket' && \
                 test \"\$(awk '! /^[[:space:]]*#/ && \$1 == \"MilterSocket\" { print \$2 }' '$runtime/clamav-milter.conf')\" = 'unix:$runtime/milter.sock'"
     else
         env CLAMAV_RUNTIME_DIR="$runtime" CLAMAV_NO_CLAMD=true \
             CLAMAV_NO_FRESHCLAMD=true CLAMAV_NO_MILTERD=true HOME="$work/home" \
             TMPDIR="$work/tmp" sh "$entrypoint" sh -c "\
                 test \"\$(awk '! /^[[:space:]]*#/ && \$1 == \"LocalSocket\" { count++; socket = \$2 } END { print count, socket }' '$runtime/clamd.conf')\" = '1 $expected_socket' && \
-                test \"\$(awk '! /^[[:space:]]*#/ && \$1 == \"ClamdSocket\" { print \$2 }' '$runtime/clamav-milter.conf')\" = '$expected_socket' && \
+                test \"\$(awk '! /^[[:space:]]*#/ && \$1 == \"ClamdSocket\" { print \$2 }' '$runtime/clamav-milter.conf')\" = 'unix:$expected_socket' && \
                 test \"\$(awk '! /^[[:space:]]*#/ && \$1 == \"MilterSocket\" { print \$2 }' '$runtime/clamav-milter.conf')\" = 'unix:$runtime/milter.sock'"
     fi
     rm -rf "$work"
