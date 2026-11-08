@@ -43,7 +43,6 @@ else
 		          --daemon \
 		          --foreground \
 		          --stdout \
-		          --user="clamav" \
 			  &
 	fi
 
