@@ -2,7 +2,7 @@
 
 set -eu
 
-root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
+root=$(CDPATH=; cd -- "$(dirname "$0")/.." && pwd)
 
 run_case() {
     script=$1

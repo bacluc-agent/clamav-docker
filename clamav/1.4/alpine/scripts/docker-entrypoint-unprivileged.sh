@@ -1,4 +1,5 @@
 #!/sbin/tini /bin/sh
+# shellcheck shell=sh
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Copyright (C) 2021 Olliver Schinagl <oliver@schinagl.nl>
@@ -43,9 +44,12 @@ done
 
 env | grep '^FRESHCLAM_CONF_' | while IFS='=' read -r KEY VALUE; do
     TRIMMED="${KEY#FRESHCLAM_CONF_}"
-    grep -q "^#$TRIMMED " "$CLAMAV_RUNTIME_DIR/freshclam.conf" && \
+    if grep -q "^#$TRIMMED " "$CLAMAV_RUNTIME_DIR/freshclam.conf"; then
         sed -i "s|^#$TRIMMED .*|$TRIMMED $VALUE|" "$CLAMAV_RUNTIME_DIR/freshclam.conf" || \
+            sed -i "\$ a\\$TRIMMED $VALUE" "$CLAMAV_RUNTIME_DIR/freshclam.conf"
+    else
         sed -i "\$ a\\$TRIMMED $VALUE" "$CLAMAV_RUNTIME_DIR/freshclam.conf"
+    fi
 done
 
 if [ "${CLAMD_CONF_LocalSocket+x}" = x ]; then

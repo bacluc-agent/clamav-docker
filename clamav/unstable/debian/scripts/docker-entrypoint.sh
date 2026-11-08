@@ -21,17 +21,23 @@ chown -R clamav:clamav /var/lib/clamav
 env | grep "^CLAMD_CONF_" | while IFS="=" read -r KEY VALUE; do
     TRIMMED="${KEY#CLAMD_CONF_}"
 
-    grep -q "^#$TRIMMED " /etc/clamav/clamd.conf && \
+    if grep -q "^#$TRIMMED " /etc/clamav/clamd.conf; then
         sed -i "s/^#$TRIMMED .*/$TRIMMED $VALUE/" /etc/clamav/clamd.conf || \
+            sed -i "\$ a\\$TRIMMED $VALUE" /etc/clamav/clamd.conf
+    else
         sed -i "\$ a\\$TRIMMED $VALUE" /etc/clamav/clamd.conf
+    fi
 done
 
 env | grep "^FRESHCLAM_CONF_" | while IFS="=" read -r KEY VALUE; do
     TRIMMED="${KEY#FRESHCLAM_CONF_}"
 
-    grep -q "^#$TRIMMED " /etc/clamav/freshclam.conf && \
+    if grep -q "^#$TRIMMED " /etc/clamav/freshclam.conf; then
         sed -i "s/^#$TRIMMED .*/$TRIMMED $VALUE/" /etc/clamav/freshclam.conf || \
+            sed -i "\$ a\\$TRIMMED $VALUE" /etc/clamav/freshclam.conf
+    else
         sed -i "\$ a\\$TRIMMED $VALUE" /etc/clamav/freshclam.conf
+    fi
 done
 
 # run command if it is not starting with a "-" and is an executable in PATH
