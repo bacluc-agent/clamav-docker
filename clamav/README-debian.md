@@ -205,22 +205,19 @@ To do so, you have two options:
        clamav/clamav-debian:unstable_base
    ```
 
-   > _Disclaimer_: When using a Bind Mount, the container's entrypoint script
-   will change ownership of this directory to its "clamav" user. This enables
-   FreshClam and ClamD with the required permissions to read and write to the
-   directory, though these changes will also affect those files on the host.
+    > _Disclaimer_: The root entrypoint can prepare a bind mount by changing its ownership. The unprivileged entrypoint cannot change ownership, so bind mounts for the database and logs must be prepared on the host with write permission for the container's `UID:GID`.
 
 If you're thinking about running multiple containers that share a single
 database volume, [here are some notes on how this might work](#multiple-containers-sharing-the-same-mounted-databases).
 
 ### Running ClamD using non-root user using --user and --entrypoint
 
-You can run a container using the non-root user "clamav" with the unprivileged entrypoint script. To do this with Docker, you will need to add these two options: `--user "clamav" --entrypoint /init-unprivileged`
+You can run a container using any non-root `UID:GID` with the unprivileged entrypoint script. The image prepares writable database, log, home/cache, temporary, and runtime paths; bind mounts still need suitable ownership or mode bits on the host. To do this with Docker, add `--user "12345:23456" --entrypoint /init-unprivileged`.
 For example:
 ```bash
 docker run -it --rm \
-      --user "clamav"
-      --entrypoint /init-unprivileged
+      --user "12345:23456" \
+      --entrypoint /init-unprivileged \
       --name "clam_container_01" \
     clamav/clamav-debian:unstable_base
 ```
