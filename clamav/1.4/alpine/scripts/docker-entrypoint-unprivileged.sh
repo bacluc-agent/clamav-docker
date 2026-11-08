@@ -32,9 +32,13 @@ sed -e 's|.*\(User\) .*|#\1|' \
 
 env | grep '^CLAMD_CONF_' | while IFS='=' read -r KEY VALUE; do
     TRIMMED="${KEY#CLAMD_CONF_}"
-    grep -q "^#$TRIMMED " "$CLAMAV_RUNTIME_DIR/clamd.conf" && \
-        sed -i "s|^#$TRIMMED .*|$TRIMMED $VALUE|" "$CLAMAV_RUNTIME_DIR/clamd.conf" || \
+    if grep -q "^#$TRIMMED " "$CLAMAV_RUNTIME_DIR/clamd.conf"; then
+        sed -i "s|^#$TRIMMED .*|$TRIMMED $VALUE|" "$CLAMAV_RUNTIME_DIR/clamd.conf"
+    elif grep -q "^[[:space:]]*$TRIMMED " "$CLAMAV_RUNTIME_DIR/clamd.conf"; then
+        sed -i "s|^[[:space:]]*$TRIMMED .*|$TRIMMED $VALUE|" "$CLAMAV_RUNTIME_DIR/clamd.conf"
+    else
         sed -i "\$ a\\$TRIMMED $VALUE" "$CLAMAV_RUNTIME_DIR/clamd.conf"
+    fi
 done
 
 env | grep '^FRESHCLAM_CONF_' | while IFS='=' read -r KEY VALUE; do
@@ -43,6 +47,10 @@ env | grep '^FRESHCLAM_CONF_' | while IFS='=' read -r KEY VALUE; do
         sed -i "s|^#$TRIMMED .*|$TRIMMED $VALUE|" "$CLAMAV_RUNTIME_DIR/freshclam.conf" || \
         sed -i "\$ a\\$TRIMMED $VALUE" "$CLAMAV_RUNTIME_DIR/freshclam.conf"
 done
+
+if [ "${CLAMD_CONF_LocalSocket+x}" = x ]; then
+    CLAMD_CONFIG_LOCAL_SOCKET=$CLAMD_CONF_LocalSocket
+fi
 
 case "$CLAMD_CONFIG_LOCAL_SOCKET" in
     ""|/tmp/clamd.sock) ;;
