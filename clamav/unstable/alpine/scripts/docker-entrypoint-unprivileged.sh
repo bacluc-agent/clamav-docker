@@ -20,9 +20,14 @@ else
 	if [ "${#}" -ge 1 ] && \
 	   [ "${1#-}" != "${1}" ]; then
 		# If an argument starts with "-" pass it to clamd specifically
-		exec clamd "${@}"
+		CLAMD_CONFIG="$(mktemp)"
+		sed 's/^User clamav$/#User clamav/' /etc/clamav/clamd.conf > "${CLAMD_CONFIG}"
+		exec clamd --config-file="${CLAMD_CONFIG}" "${@}"
 	fi
 	# else default to running clamav's servers
+
+	CLAMD_CONFIG="$(mktemp)"
+	sed 's/^User clamav$/#User clamav/' /etc/clamav/clamd.conf > "${CLAMD_CONFIG}"
 
 	# Ensure we have some virus data, otherwise clamd refuses to start
 	if [ ! -f "/var/lib/clamav/main.cvd" ]; then
@@ -44,7 +49,6 @@ else
 		          --daemon \
 		          --foreground \
 		          --stdout \
-		          --user="clamav" \
 			  &
 	fi
 
@@ -53,7 +57,7 @@ else
 		if [ -S "/tmp/clamd.sock" ]; then
 			unlink "/tmp/clamd.sock"
 		fi
-		clamd --foreground &
+		clamd --config-file="${CLAMD_CONFIG}" --foreground &
 		while [ ! -S "/tmp/clamd.sock" ]; do
 			if [ "${_timeout:=0}" -gt "${CLAMD_STARTUP_TIMEOUT:=1800}" ]; then
 				echo

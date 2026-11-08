@@ -113,8 +113,9 @@ RUN apk update && apk upgrade \
     rm -rf /var/cache/apk/* && \
     addgroup -S "clamav" && \
     adduser -D -G "clamav" -h "/var/lib/clamav" -s "/bin/false" -u 100 -S "clamav" && \
-    install -d -m 755 -g "clamav" -o "clamav" "/var/log/clamav" && \
-    chown -R clamav:clamav /var/lib/clamav
+    install -d -m 775 -g 0 -o "clamav" "/var/log/clamav" && \
+    chown -R clamav:0 /var/lib/clamav && \
+    chmod -R g+rwX /var/lib/clamav
 
 COPY --from=builder "/clamav" "/"
 COPY "./scripts/clamdcheck.sh" "/usr/local/bin/"

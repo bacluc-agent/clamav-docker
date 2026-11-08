@@ -225,6 +225,28 @@ docker run -it --rm \
     clamav/clamav-debian:unstable_base
 ```
 
+The image also supports an arbitrary non-root UID when it runs with group `0`.
+Use the unprivileged entrypoint explicitly, for example:
+
+```bash
+docker run -it --rm \
+    --user 30000:0 \
+    --entrypoint /init-unprivileged \
+    clamav/clamav-debian:unstable_base
+```
+
+The image prepares `/var/lib/clamav` and `/var/log/clamav` for group `0`
+access without making them world-writable. Bind mounts replace those prepared
+directories, so prepare their host directories with group `0` access before
+starting an arbitrary-UID container, for example:
+
+```bash
+install -d -m 775 -o 30000 -g 0 /path/to/databases /path/to/logs
+```
+
+The default `/init` entrypoint continues to run as root and manages the
+container's `clamav` account as before.
+
 ## Running Clam(D)Scan
 
 Scanning files using `clamscan` or `clamdscan` is possible in various ways with
