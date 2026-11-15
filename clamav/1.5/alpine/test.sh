@@ -8,7 +8,10 @@ user_name=clamav-alpine-15-user
 cleanup() {
 	docker rm -f "$root_name" "$user_name" >/dev/null 2>&1 || true
 }
-trap cleanup EXIT HUP INT TERM
+custom_config=$(mktemp)
+printf 'LogTime no\n' > "$custom_config"
+chmod 644 "$custom_config"
+trap 'rm -f "$custom_config"; cleanup' EXIT HUP INT TERM
 
 [ "$(docker run --rm --user clamav "$image" id -u)" = 100 ]
 [ "$(docker run --rm --user clamav "$image" id -g)" = 101 ]
@@ -28,6 +31,7 @@ rm "$file"
 
 config_hash=$(docker run --rm "$image" sha256sum /etc/clamav/clamd.conf)
 docker run --rm --user 40000:40001 -e CLAMD_CONF_LogTime=no "$image" sh -c "test \"\$(sha256sum /etc/clamav/clamd.conf)\" = '$config_hash'"
+docker run --rm --user 40000:40001 --mount "type=bind,src=$custom_config,dst=/etc/clamav/clamd.conf,readonly" "$image" sh -c 'grep -q "^LocalSocket /tmp/clamd.sock$" /tmp/clamav/clamd.conf'
 
 docker run -d --name "$root_name" --user 0:0 "$image" >/dev/null
 docker run -d --name "$user_name" --user 40000:40001 "$image" >/dev/null

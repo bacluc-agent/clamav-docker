@@ -20,6 +20,10 @@ mkdir -p "$HOME" "$HOME/.cache" "$TMPDIR" "$CLAMAV_RUNTIME_DIR"
 CLAMD_CONFIG_LOCAL_SOCKET=$(awk '!/^[[:space:]]*#/ && $1 == "LocalSocket" { socket = $2 } END { print socket }' /etc/clamav/clamd.conf)
 
 sed -e 's|.*\(User\) .*|#\1|' -e 's|.*\(LocalSocket\) .*|\1 /tmp/clamd.sock|' -e 's|^#\(LogFile\) .*|\1 /var/log/clamav/clamd.log|' /etc/clamav/clamd.conf > "$CLAMAV_RUNTIME_DIR/clamd.conf"
+if [ -z "$CLAMD_CONFIG_LOCAL_SOCKET" ]; then
+    CLAMD_CONFIG_LOCAL_SOCKET=/tmp/clamd.sock
+    printf 'LocalSocket %s\n' "$CLAMD_CONFIG_LOCAL_SOCKET" >> "$CLAMAV_RUNTIME_DIR/clamd.conf"
+fi
 sed -e 's|.*\(DatabaseOwner\) .*|#\1|' -e "s|^#\(UpdateLogFile\) .*|\1 /var/log/clamav/freshclam.log|" -e "s|^#\(NotifyClamd\).*|\1 $CLAMAV_RUNTIME_DIR/clamd.conf|" /etc/clamav/freshclam.conf > "$CLAMAV_RUNTIME_DIR/freshclam.conf"
 sed -e 's|.*\(User\) .*|#\1|' -e "s|.*\(MilterSocket\) .*|\1 unix:$CLAMAV_RUNTIME_DIR/milter.sock|" /etc/clamav/clamav-milter.conf > "$CLAMAV_RUNTIME_DIR/clamav-milter.conf"
 
