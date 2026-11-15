@@ -155,6 +155,13 @@ node('docker') {
                         -f Dockerfile.add-db .
                 """
 
+                stage('Runtime tests') {
+                    sh """
+                    clamav-docker/clamav/${params.FEATURE_VERSION}/alpine/test.sh \
+                        ${params.DOCKER_REGISTRY}/${params.NAMESPACE}/${params.IMAGE_NAME}:${params.FULL_VERSION}
+                    """
+                }
+
                 // Publish X.Y.Z tag (without the _base suffix)
 
                 sh """

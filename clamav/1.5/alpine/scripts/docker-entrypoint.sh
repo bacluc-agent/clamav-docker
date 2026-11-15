@@ -1,4 +1,5 @@
 #!/sbin/tini /bin/sh
+# shellcheck shell=sh
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Copyright (C) 2021 Olliver Schinagl <oliver@schinagl.nl>
@@ -9,6 +10,10 @@
 # https://github.com/docker-library/official-images#consistency
 
 set -eu
+
+if [ "$(id -u)" -ne 0 ]; then
+	exec /init-unprivileged "${@}"
+fi
 
 if [ ! -d "/run/clamav" ]; then
 	install -d -g "clamav" -m 775 -o "clamav" "/run/clamav"
@@ -21,17 +26,23 @@ chown -R clamav:clamav /var/lib/clamav
 env | grep "^CLAMD_CONF_" | while IFS="=" read -r KEY VALUE; do
     TRIMMED="${KEY#CLAMD_CONF_}"
 
-    grep -q "^#$TRIMMED " /etc/clamav/clamd.conf && \
+    if grep -q "^#$TRIMMED " /etc/clamav/clamd.conf; then
         sed -i "s/^#$TRIMMED .*/$TRIMMED $VALUE/" /etc/clamav/clamd.conf || \
+            sed -i "\$ a\\$TRIMMED $VALUE" /etc/clamav/clamd.conf
+    else
         sed -i "\$ a\\$TRIMMED $VALUE" /etc/clamav/clamd.conf
+    fi
 done
 
 env | grep "^FRESHCLAM_CONF_" | while IFS="=" read -r KEY VALUE; do
     TRIMMED="${KEY#FRESHCLAM_CONF_}"
 
-    grep -q "^#$TRIMMED " /etc/clamav/freshclam.conf && \
+    if grep -q "^#$TRIMMED " /etc/clamav/freshclam.conf; then
         sed -i "s/^#$TRIMMED .*/$TRIMMED $VALUE/" /etc/clamav/freshclam.conf || \
+            sed -i "\$ a\\$TRIMMED $VALUE" /etc/clamav/freshclam.conf
+    else
         sed -i "\$ a\\$TRIMMED $VALUE" /etc/clamav/freshclam.conf
+    fi
 done
 
 # run command if it is not starting with a "-" and is an executable in PATH
