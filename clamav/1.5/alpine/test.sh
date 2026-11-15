@@ -46,7 +46,7 @@ wait_for_socket() {
 wait_for_socket "$root_name" /tmp/clamd.sock
 wait_for_socket "$user_name" /tmp/clamd.sock
 
-docker exec "$root_name" sh -c 'echo "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*" > /tmp/eicar.com'
+docker exec "$root_name" sh -c 'printf "%s\n" '\''X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'\'' > /tmp/eicar.com'
 if docker exec "$root_name" clamdscan --stream /tmp/eicar.com; then
 	exit 1
 fi
